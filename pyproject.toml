@@ -11,7 +11,13 @@ dependencies = [
     "pretty-midi>=0.2.10",
     "scipy>=1.10.0",
     "librosa>=0.10.0",
+    "mcp[cli]>=1.0.0",
 ]
 
 [project.scripts]
 whale-listen = "whale_listen:main"
+whale-listen-mcp = "server:mcp.run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
