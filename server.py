@@ -18,10 +18,7 @@ from collections import Counter
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP(
-    "whale-listen",
-    description="Ears for AI — convert audio to structured note data so Claude can 'hear' music",
-)
+mcp = FastMCP("whale-listen")
 
 
 # ── lazy imports ─────────────────────────────────────────────────────
