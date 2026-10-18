@@ -22,21 +22,39 @@ except (ImportError, ModuleNotFoundError):
     # mcp 2.x renamed FastMCP to MCPServer
     from mcp.server.mcpserver import MCPServer as FastMCP
 
-# Patch scipy before basic-pitch import
-import scipy.signal
-from scipy.signal.windows import gaussian as _gaussian
-
-if not hasattr(scipy.signal, "gaussian"):
-    scipy.signal.gaussian = _gaussian
-
-from basic_pitch.inference import predict
-from basic_pitch import ICASSP_2022_MODEL_PATH
-import pretty_midi
-
 mcp = FastMCP(
     "whale-listen",
     description="Ears for AI — convert audio to structured note data so Claude can 'hear' music",
 )
+
+
+# ── lazy imports ─────────────────────────────────────────────────────
+
+_predict = None
+_model_path = None
+_pretty_midi = None
+
+
+def _load_pitch_deps():
+    """Load basic-pitch and pretty-midi on first use (not at startup)."""
+    global _predict, _model_path, _pretty_midi
+
+    if _predict is not None:
+        return
+
+    # Patch scipy before basic-pitch import
+    import scipy.signal
+    from scipy.signal.windows import gaussian as _gaussian
+    if not hasattr(scipy.signal, "gaussian"):
+        scipy.signal.gaussian = _gaussian
+
+    from basic_pitch.inference import predict
+    from basic_pitch import ICASSP_2022_MODEL_PATH
+    import pretty_midi
+
+    _predict = predict
+    _model_path = ICASSP_2022_MODEL_PATH
+    _pretty_midi = pretty_midi
 
 
 # ── helpers ──────────────────────────────────────────────────────────
@@ -44,20 +62,22 @@ mcp = FastMCP(
 
 def _find_model():
     """Find the ONNX model bundled with basic-pitch."""
-    onnx = pathlib.Path(ICASSP_2022_MODEL_PATH).parent / "nmp.onnx"
+    onnx = pathlib.Path(_model_path).parent / "nmp.onnx"
     if onnx.exists():
         return onnx
-    return ICASSP_2022_MODEL_PATH
+    return _model_path
 
 
 def _convert(audio_path: str) -> dict:
     """Run pitch detection and return structured note data."""
+    _load_pitch_deps()
+
     audio = pathlib.Path(audio_path)
     if not audio.exists():
         raise FileNotFoundError(f"Audio file not found: {audio}")
 
     model = _find_model()
-    _model_output, midi_data, _note_events = predict(str(audio), model)
+    _model_output, midi_data, _note_events = _predict(str(audio), model)
 
     notes = []
     for inst in midi_data.instruments:
@@ -65,7 +85,7 @@ def _convert(audio_path: str) -> dict:
             notes.append(
                 {
                     "pitch": int(note.pitch),
-                    "note_name": pretty_midi.note_number_to_name(note.pitch),
+                    "note_name": _pretty_midi.note_number_to_name(note.pitch),
                     "start": round(float(note.start), 3),
                     "end": round(float(note.end), 3),
                     "duration": round(float(note.end - note.start), 3),
