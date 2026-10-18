@@ -290,4 +290,10 @@ def listen_and_analyze(audio_path: str) -> str:
 # ── entry point ──────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    mcp.run()
+    import os
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    if transport == "sse":
+        port = int(os.environ.get("PORT", 8000))
+        mcp.run(transport="sse", host="0.0.0.0", port=port)
+    else:
+        mcp.run()
