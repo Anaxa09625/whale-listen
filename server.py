@@ -16,11 +16,7 @@ import tempfile
 import traceback
 from collections import Counter
 
-try:
-    from mcp.server.fastmcp import FastMCP
-except (ImportError, ModuleNotFoundError):
-    # mcp 2.x renamed FastMCP to MCPServer
-    from mcp.server.mcpserver import MCPServer as FastMCP
+from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(
     "whale-listen",

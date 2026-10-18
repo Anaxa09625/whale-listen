@@ -10,7 +10,7 @@ dependencies = [
     "pretty-midi>=0.2.10",
     "scipy>=1.10.0",
     "librosa>=0.10.0",
-    "mcp[cli]>=1.0.0",
+    "mcp[cli]>=1.0.0,<2",
 ]
 
 [project.scripts]
