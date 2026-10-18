@@ -6,7 +6,6 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 dependencies = [
-    "basic-pitch>=0.3.0",
     "onnxruntime>=1.16.0",
     "pretty-midi>=0.2.10",
     "scipy>=1.10.0",
