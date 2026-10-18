@@ -16,7 +16,11 @@ import tempfile
 import traceback
 from collections import Counter
 
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.fastmcp import FastMCP
+except (ImportError, ModuleNotFoundError):
+    # mcp 2.x renamed FastMCP to MCPServer
+    from mcp.server.mcpserver import MCPServer as FastMCP
 
 # Patch scipy before basic-pitch import
 import scipy.signal
