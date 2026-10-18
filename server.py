@@ -201,6 +201,40 @@ def _analyze(data: dict) -> str:
 
 
 @mcp.tool()
+def listen_url(url: str, filename: str = "download.mp3") -> str:
+    """Download audio from a URL and convert it into structured JSON note data.
+
+    Use this when the audio file is too large for base64 encoding (~1MB+).
+    Claude can provide a direct download URL for the audio file.
+
+    Args:
+        url: Direct download URL for the audio file.
+        filename: Filename hint (used to detect format). Defaults to download.mp3.
+
+    Returns:
+        JSON string with source, duration, total_notes, and a notes array,
+        followed by structural analysis.
+    """
+    try:
+        import urllib.request
+        suffix = pathlib.Path(filename).suffix or ".mp3"
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp_path = tmp.name
+            urllib.request.urlretrieve(url, tmp_path)
+
+        data = _convert(tmp_path)
+        data["source"] = filename
+        analysis = _analyze(data)
+
+        pathlib.Path(tmp_path).unlink(missing_ok=True)
+
+        result = json.dumps(data, indent=2, ensure_ascii=False)
+        return f"{result}\n\n--- Analysis ---\n\n{analysis}"
+    except Exception as e:
+        return json.dumps({"error": str(e), "traceback": traceback.format_exc()})
+
+
+@mcp.tool()
 def listen_upload(audio_base64: str, filename: str = "upload.mp3") -> str:
     """Convert uploaded audio into structured JSON note data.
 
